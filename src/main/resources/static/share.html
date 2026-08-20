@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>CloudVault - Shared File Access</title>
+    <link rel="stylesheet" href="style.css?v=4">
+    <style>
+        /* Force dark theme styles inline to override caching */
+        body {
+            background: #0a0e17 !important;
+            color: #ffffff !important;
+            position: relative;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'SF Pro Display', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+        }
+        body {
+            background: var(--dark-bg);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(139, 125, 216, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(102, 126, 234, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .share-page-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header Logo */
+        .share-header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 60px;
+        }
+
+        .share-header-logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary-purple), var(--primary-blue));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 8px 24px rgba(139, 125, 216, 0.3);
+        }
+
+        .share-header-logo-text {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        .share-header-logo-text .vault {
+            background: linear-gradient(135deg, var(--primary-purple), var(--primary-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Main Card */
+        .share-card {
+            background: linear-gradient(135deg, rgba(19, 24, 36, 0.95), rgba(31, 41, 55, 0.9));
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(139, 125, 216, 0.2);
+            border-radius: 24px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.8),
+                0 0 0 1px rgba(139, 125, 216, 0.1) inset;
+            padding: 48px;
+            max-width: 700px;
+            width: 100%;
+            position: relative;
+        }
+
+        .share-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: linear-gradient(180deg, rgba(139, 125, 216, 0.05) 0%, transparent 100%);
+            border-radius: 24px 24px 0 0;
+            pointer-events: none;
+        }
+
+        /* Status Icons */
+        .emoji-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+            filter: drop-shadow(0 8px 16px rgba(139, 125, 216, 0.4));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Title Section */
+        .share-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .share-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 36px;
+        }
+
+        /* File Info Box */
+        .file-info {
+            background: rgba(19, 24, 36, 0.6);
+            border: 1px solid rgba(139, 125, 216, 0.15);
+            border-radius: 16px;
+            padding: 28px;
+            margin: 32px 0;
+            position: relative;
+        }
+
+        .file-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(139, 125, 216, 0.03), rgba(102, 126, 234, 0.02));
+            border-radius: 16px;
+            pointer-events: none;
+        }
+
+        .file-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(139, 125, 216, 0.08);
+            font-size: 15px;
+            position: relative;
+        }
+
+        .file-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .file-info-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-info-value {
+            color: var(--text-primary);
+            word-break: break-word;
+            text-align: right;
+            font-weight: 500;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-top: 32px;
+        }
+
+        .btn-full {
+            padding: 16px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary.btn-full {
+            background: linear-gradient(135deg, var(--primary-purple), var(--primary-blue));
+            color: white;
+            box-shadow: 0 6px 20px rgba(139, 125, 216, 0.35);
+        }
+
+        .btn-primary.btn-full:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(139, 125, 216, 0.5);
+        }
+
+        .btn-secondary.btn-full {
+            background: rgba(31, 41, 55, 0.8);
+            color: var(--text-primary);
+            border: 1px solid rgba(139, 125, 216, 0.2);
+        }
+
+        .btn-secondary.btn-full:hover {
+            background: rgba(31, 41, 55, 1);
+            border-color: rgba(139, 125, 216, 0.4);
+        }
+
+        /* Status Messages */
+        .status {
+            margin-top: 24px;
+            padding: 18px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status.loading {
+            display: flex;
+            background: rgba(139, 125, 216, 0.12);
+            color: var(--primary-purple);
+            border: 1px solid rgba(139, 125, 216, 0.3);
+        }
+
+        .status.success {
+            display: flex;
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--success-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status.error {
+            display: flex;
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--error-red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Error/Expired States */
+        .expired-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid rgba(239, 68, 68, 0.3);
+            color: var(--error-red);
+            padding: 40px 32px;
+            border-radius: 20px;
+            margin-top: 32px;
+            text-align: center;
+        }
+
+        .expired-message-title {
+            font-size: 64px;
+            margin-bottom: 24px;
+            filter: drop-shadow(0 6px 12px rgba(239, 68, 68, 0.4));
+        }
+
+        .expired-message-text {
+            font-size: 20px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .expired-message p {
+            font-size: 15px;
+            color: var(--text-secondary);
+        }
+
+        /* View Only Badge */
+        .view-only-badge {
+            background: linear-gradient(135deg, rgba(139, 125, 216, 0.25), rgba(102, 126, 234, 0.2));
+            border: 1px solid rgba(139, 125, 216, 0.5);
+            color: var(--text-primary);
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(139, 125, 216, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Back Link */
+        .back-link {
+            margin-top: 32px;
+            text-align: center;
+        }
+
+        .back-link a {
+            color: var(--primary-purple);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-link a:hover {
+            color: var(--primary-blue);
+            transform: translateX(-4px);
+        }
+
+        /* File Viewer */
+        .file-viewer-container {
+            background: linear-gradient(135deg, rgba(19, 24, 36, 0.95), rgba(31, 41, 55, 0.9));
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(139, 125, 216, 0.2);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            padding: 28px;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: auto;
+            margin: 20px auto;
+        }
+
+        .file-viewer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(139, 125, 216, 0.15);
+        }
+
+        .file-viewer-header h2 {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .file-viewer-close {
+            background: rgba(31, 41, 55, 0.8);
+            border: 1px solid rgba(139, 125, 216, 0.2);
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-primary);
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .file-viewer-close:hover {
+            background: rgba(31, 41, 55, 1);
+            border-color: rgba(139, 125, 216, 0.4);
+        }
+
+        .file-viewer-content {
+            background: rgba(19, 24, 36, 0.6);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(139, 125, 216, 0.1);
+        }
+
+        .image-viewer {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+        }
+
+        .text-viewer {
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: var(--text-primary);
+            line-height: 1.6;
+            max-height: 70vh;
+            overflow-y: auto;
+            font-size: 13px;
+        }
+
+        .pdf-viewer {
+            width: 100%;
+            height: 70vh;
+            border: 1px solid rgba(139, 125, 216, 0.15);
+            border-radius: 12px;
+        }
+
+        .unsupported-file {
+            text-align: center;
+            padding: 48px;
+            color: var(--text-secondary);
+        }
+
+        .unsupported-file p {
+            font-size: 16px;
+            margin: 12px 0;
+        }
+
+        /* Loading State Enhancement */
+        .loading-container {
+            text-align: center;
+            padding: 40px;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .share-card {
+                padding: 32px 24px;
+            }
+
+            .share-title {
+                font-size: 26px;
+            }
+
+            .emoji-icon {
+                font-size: 64px;
+            }
+
+            .btn-group {
+                grid-template-columns: 1fr;
+            }
+
+            .file-info-row {
+                flex-direction: column;
+                gap: 8px;
+                align-items: flex-start;
+            }
+
+            .file-info-value {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="share-page-container">
+        <!-- Header Logo -->
+        <div class="share-header-logo">
+            <div class="share-header-logo-icon">☁️</div>
+            <div class="share-header-logo-text">Cloud<span class="vault">Vault</span></div>
+        </div>
+
+        <div class="share-card">
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-container">
+                <div class="emoji-icon">🔍</div>
+                <h1 class="share-title">Verifying Access</h1>
+                <p class="share-subtitle">Please wait while we check the file availability...</p>
+                <div class="status loading">
+                    <div class="spinner"></div>
+                    Checking file access...
+                </div>
+            </div>
+
+            <!-- Expired State -->
+            <div id="expiredState" style="display: none;">
+                <div style="text-align: center;">
+                    <div class="expired-message-title">⏰</div>
+                    <h1 class="share-title" style="color: var(--error-red);">File Expired</h1>
+                    <p class="share-subtitle">This file has expired and is no longer available.</p>
+                </div>
+                <div class="expired-message">
+                    <p style="font-size: 15px; line-height: 1.6;">
+                        The link you're trying to access has passed its expiration time.<br>
+                        Please contact the sender for a new link.
+                    </p>
+                </div>
+                <div class="back-link">
+                    <a href="/">
+                        <span>←</span> Back to CloudVault
+                    </a>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" style="display: none;">
+                <div style="text-align: center;">
+                    <div class="expired-message-title">❌</div>
+                    <h1 class="share-title" style="color: var(--error-red);">Access Denied</h1>
+                    <p class="share-subtitle">Unable to access this file</p>
+                </div>
+                <div class="expired-message">
+                    <p id="errorMessage" style="font-size: 15px; line-height: 1.6;"></p>
+                </div>
+                <div class="back-link">
+                    <a href="/">
+                        <span>←</span> Back to CloudVault
+                    </a>
+                </div>
+            </div>
+
+            <!-- File Available State -->
+            <div id="fileState" style="display: none;">
+                <div style="text-align: center;">
+                    <div class="emoji-icon">📥</div>
+                    <h1 class="share-title">Shared File</h1>
+                    <p class="share-subtitle">This file is ready to access</p>
+                </div>
+
+                <div class="file-info">
+                    <div class="file-info-row">
+                        <span class="file-info-label">📁 File Name</span>
+                        <span class="file-info-value" id="fileName"></span>
+                    </div>
+                    <div class="file-info-row">
+                        <span class="file-info-label">💾 File Size</span>
+                        <span class="file-info-value" id="fileSize"></span>
+                    </div>
+                    <div class="file-info-row">
+                        <span class="file-info-label">📅 Uploaded</span>
+                        <span class="file-info-value" id="uploadedAt"></span>
+                    </div>
+                    <div class="file-info-row">
+                        <span class="file-info-label">⏰ Expires</span>
+                        <span class="file-info-value" id="expiresAt"></span>
+                    </div>
+                    <div class="file-info-row">
+                        <span class="file-info-label">📥 Downloads</span>
+                        <span class="file-info-value" id="downloadCount"></span>
+                    </div>
+                    <div class="file-info-row">
+                        <span class="file-info-label">🔒 Access Mode</span>
+                        <span class="file-info-value" id="accessMode"></span>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-full" id="downloadBtn" onclick="downloadFile()">
+                        <span>⬇️</span> Download File
+                    </button>
+                    <button class="btn btn-secondary btn-full" onclick="verifyEncryption()">
+                        <span>🔐</span> Verify Encryption
+                    </button>
+                    <button class="btn btn-secondary btn-full" onclick="window.location.href='/'">
+                        <span>🏠</span> Home
+                    </button>
+                </div>
+
+                <div id="status" class="status"></div>
+            </div>
+
+            <!-- Viewer State -->
+            <div id="viewerState" style="display: none; width: 100%; max-width: none;">
+                <div class="file-viewer-container">
+                    <div class="file-viewer-header">
+                        <h2>📄 File Viewer</h2>
+                        <button class="file-viewer-close" onclick="closeViewer()">✕ Close</button>
+                    </div>
+                    <div class="file-viewer-content" id="viewerContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/files';
+        let currentToken = '';
+
+        function getShareTokenFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('token') || '';
+        }
+
+        function getShareTokenFromPath() {
+            const pathParts = window.location.pathname.split('/');
+            if (pathParts.length > 0) {
+                const token = pathParts[pathParts.length - 1];
+                if (token && token.length === 16) {
+                    return token.toUpperCase();
+                }
+            }
+            return '';
+        }
+
+        window.addEventListener('load', async () => {
+            currentToken = getShareTokenFromURL() || getShareTokenFromPath();
+
+            if (!currentToken || currentToken.length !== 16) {
+                showError('Invalid or missing share token.');
+                return;
+            }
+
+            await checkFileAccess();
+        });
+
+        async function checkFileAccess() {
+            try {
+                document.getElementById('loadingState').style.display = 'block';
+                document.getElementById('fileState').style.display = 'none';
+                document.getElementById('expiredState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'none';
+
+                const response = await fetch(`${API_BASE}/access/${currentToken}`);
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        showError('File not found or does not exist.');
+                    } else {
+                        showError('Error accessing file.');
+                    }
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.isExpired) {
+                    showExpired();
+                    return;
+                }
+
+                showFileInfo(data);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Error: ${error.message}`);
+            }
+        }
+
+        function showFileInfo(data) {
+            document.getElementById('fileName').textContent = data.fileName;
+            document.getElementById('fileSize').textContent = formatFileSize(data.fileSize);
+            document.getElementById('uploadedAt').textContent = formatDateTime(data.uploadedAt);
+            document.getElementById('expiresAt').textContent = formatDateTime(data.expiresAt);
+            document.getElementById('downloadCount').textContent = data.downloadCount;
+            
+            const accessModeText = data.accessMode === 'DOWNLOAD' 
+                ? '📥 Download & View' 
+                : '👁️ View Only';
+            document.getElementById('accessMode').textContent = accessModeText;
+
+            const downloadBtn = document.getElementById('downloadBtn');
+            if (data.accessMode === 'VIEW_ONLY') {
+                downloadBtn.style.display = 'none';
+                
+                const badge = document.createElement('div');
+                badge.className = 'view-only-badge';
+                badge.innerHTML = '<span style="font-size: 20px;">👁️</span> This file is view-only. Downloads are not allowed by the sender.';
+                downloadBtn.parentElement.insertBefore(badge, downloadBtn);
+
+                const viewBtn = document.createElement('button');
+                viewBtn.id = 'viewBtn';
+                viewBtn.className = 'btn btn-primary btn-full';
+                viewBtn.innerHTML = '<span>👁️</span> View File';
+                viewBtn.onclick = viewFile;
+                downloadBtn.parentElement.insertBefore(viewBtn, downloadBtn);
+            }
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('fileState').style.display = 'block';
+        }
+
+        function showExpired() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('expiredState').style.display = 'block';
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+        }
+
+        async function downloadFile() {
+            try {
+                const btn = document.getElementById('downloadBtn');
+                const status = document.getElementById('status');
+
+                btn.disabled = true;
+                status.className = 'status loading';
+                status.innerHTML = '<div class="spinner"></div> Downloading and decrypting file...';
+                status.style.display = 'flex';
+
+                const response = await fetch(`${API_BASE}/download/${currentToken}`);
+
+                if (!response.ok) {
+                    throw new Error('Download failed');
+                }
+
+                const contentDisposition = response.headers.get('content-disposition');
+                let filename = 'file';
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
+                    if (filenameMatch) {
+                        filename = filenameMatch[1];
+                    }
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                status.className = 'status success';
+                status.innerHTML = '<span style="font-size: 20px;">✅</span> File downloaded successfully!';
+
+                btn.disabled = false;
+
+            } catch (error) {
+                console.error('Download error:', error);
+                const status = document.getElementById('status');
+                status.className = 'status error';
+                status.innerHTML = `<span style="font-size: 20px;">❌</span> Download failed: ${error.message}`;
+                status.style.display = 'flex';
+
+                const btn = document.getElementById('downloadBtn');
+                btn.disabled = false;
+            }
+        }
+
+        async function verifyEncryption() {
+            try {
+                const btn = document.querySelector('button[onclick="verifyEncryption()"]');
+                const status = document.getElementById('status');
+
+                btn.disabled = true;
+                status.className = 'status loading';
+                status.innerHTML = '<div class="spinner"></div> Verifying encryption...';
+                status.style.display = 'flex';
+
+                const response = await fetch(`${API_BASE}/verify/${currentToken}`);
+
+                if (!response.ok) {
+                    throw new Error('Verification failed');
+                }
+
+                const data = await response.json();
+
+                status.className = 'status success';
+                status.innerHTML = `
+                    <div>
+                        <span style="font-size: 22px;">✓</span>
+                    </div>
+                    <div style="text-align: left; flex: 1;">
+                        <strong>${data.message}</strong><br><br>
+                        <strong>Encryption Details:</strong><br>
+                        • Algorithm: <strong>${data.encryptionAlgorithm}</strong><br>
+                        • Mode: <strong>${data.encryptionMode}</strong><br>
+                        • Key Length: <strong>${data.keyLengthBits} bits</strong><br>
+                        • Status: <strong>${data.status}</strong>
+                    </div>
+                `;
+                status.style.display = 'flex';
+                status.style.alignItems = 'flex-start';
+
+                btn.disabled = false;
+
+            } catch (error) {
+                console.error('Verification error:', error);
+                const status = document.getElementById('status');
+                status.className = 'status error';
+                status.innerHTML = `<span style="font-size: 20px;">❌</span> Verification failed: ${error.message}`;
+                status.style.display = 'flex';
+
+                const btn = document.querySelector('button[onclick="verifyEncryption()"]');
+                btn.disabled = false;
+            }
+        }
+
+        async function viewFile() {
+            try {
+                const btn = document.getElementById('viewBtn');
+                const status = document.getElementById('status');
+
+                btn.disabled = true;
+                status.className = 'status loading';
+                status.innerHTML = '<div class="spinner"></div> Loading and decrypting file...';
+                status.style.display = 'flex';
+
+                const response = await fetch(`${API_BASE}/view/${currentToken}`);
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`View failed: ${response.status} - ${text}`);
+                }
+
+                const contentDisposition = response.headers.get('content-disposition');
+                let filename = 'file';
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
+                    if (filenameMatch) {
+                        filename = filenameMatch[1];
+                    }
+                }
+
+                const blob = await response.blob();
+
+                if (blob.size === 0) {
+                    throw new Error('Received empty file from server');
+                }
+
+                displayFile(blob, filename);
+
+                status.className = 'status success';
+                status.innerHTML = '<span style="font-size: 20px;">✅</span> File loaded successfully!';
+                btn.disabled = false;
+
+            } catch (error) {
+                console.error('View error:', error);
+                const status = document.getElementById('status');
+                status.className = 'status error';
+                status.innerHTML = `<span style="font-size: 20px;">❌</span> Failed to load file: ${error.message}`;
+                status.style.display = 'flex';
+
+                const btn = document.getElementById('viewBtn');
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        function displayFile(blob, filename) {
+            const fileExt = filename.split('.').pop().toLowerCase();
+            const viewerContent = document.getElementById('viewerContent');
+            viewerContent.innerHTML = '';
+
+            if (blob.size === 0) {
+                const div = document.createElement('div');
+                div.className = 'unsupported-file';
+                div.innerHTML = `
+                    <p style="font-size: 56px; margin: 20px 0;">❌</p>
+                    <p><strong>Error: File is empty</strong></p>
+                    <p>The file content could not be retrieved.</p>
+                    <p style="margin-top: 12px;">File: ${filename}</p>
+                `;
+                viewerContent.appendChild(div);
+                return;
+            }
+
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(fileExt)) {
+                const url = URL.createObjectURL(blob);
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'image-viewer';
+                img.onerror = () => {
+                    viewerContent.innerHTML = '<div class="unsupported-file"><p>Error loading image</p></div>';
+                };
+                viewerContent.appendChild(img);
+            } else if (['pdf'].includes(fileExt)) {
+                const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+                const url = URL.createObjectURL(pdfBlob);
+                const iframe = document.createElement('iframe');
+                iframe.src = url;
+                iframe.className = 'pdf-viewer';
+                iframe.type = 'application/pdf';
+                iframe.onerror = () => {
+                    viewerContent.innerHTML = '<div class="unsupported-file"><p>Error loading PDF. Try downloading instead.</p></div>';
+                };
+                viewerContent.appendChild(iframe);
+            } else if (['txt', 'md', 'log', 'json', 'xml', 'html', 'css', 'js', 'py', 'java', 'cpp', 'c'].includes(fileExt)) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const pre = document.createElement('pre');
+                    pre.className = 'text-viewer';
+                    pre.textContent = e.target.result;
+                    viewerContent.appendChild(pre);
+                };
+                reader.onerror = function() {
+                    viewerContent.innerHTML = '<div class="unsupported-file"><p>Error reading text file</p></div>';
+                };
+                reader.readAsText(blob);
+            } else {
+                const div = document.createElement('div');
+                div.className = 'unsupported-file';
+                div.innerHTML = `
+                    <p style="font-size: 56px; margin: 20px 0;">📁</p>
+                    <p><strong>Unsupported file type: .${fileExt}</strong></p>
+                    <p>This file type cannot be viewed in the browser.</p>
+                    <p style="margin-top: 12px;">File: ${filename}</p>
+                `;
+                viewerContent.appendChild(div);
+            }
+
+            document.getElementById('fileState').style.display = 'none';
+            document.getElementById('viewerState').style.display = 'block';
+        }
+
+        function closeViewer() {
+            document.getElementById('viewerState').style.display = 'none';
+            document.getElementById('fileState').style.display = 'block';
+            document.getElementById('status').style.display = 'none';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function formatDateTime(dateTimeString) {
+            const date = new Date(dateTimeString);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+    </script>
+</body>
+</html>

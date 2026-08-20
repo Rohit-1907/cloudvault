@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudVault - Secure File Sharing</title>
+    <link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-container">
+                <div class="logo-icon">☁️</div>
+                <div class="logo-text">Cloud<span class="vault">Vault</span></div>
+            </div>
+            <nav class="header-nav">
+                <a href="#" class="nav-link">Upload</a>
+                <a href="#" class="nav-link">Retrieve</a>
+                <div class="badge">
+                    <span class="badge-dot"></span>
+                    AES-256 ENCRYPTED
+                </div>
+            </nav>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero-section" id="heroSection">
+            <div class="hero-badge">
+                <span class="hero-badge-dot"></span>
+                PRIVATE BY DESIGN
+            </div>
+            <h1 class="hero-title">
+                Your files.<br>
+                <span class="gradient-text">Under your<br>control.</span>
+            </h1>
+            <p class="hero-description">
+                Share sensitive files with confidence. CloudVault encrypts every upload and makes every link self-expire.
+            </p>
+            <div class="hero-features">
+                <div class="hero-feature">
+                    <span class="hero-feature-icon">✓</span>
+                    End-to-end protected
+                </div>
+                <div class="hero-feature">
+                    <span class="hero-feature-icon">⚡</span>
+                    Zero setup
+                </div>
+            </div>
+        </section>
+
+        <!-- Vault Card (decorative) -->
+        <div class="hero-vault-card">
+            <div class="vault-status">
+                <span>VAULT STATUS</span>
+                <span class="vault-status-live">
+                    <span class="status-dot"></span>
+                    LIVE
+                </span>
+            </div>
+            <div class="vault-icon">🔒</div>
+            <div class="vault-title">Secure space</div>
+            <div class="vault-subtitle">Ready for your next transfer</div>
+            <div class="vault-progress">
+                <span class="vault-progress-dot active"></span>
+                <span class="vault-progress-dot"></span>
+                <span class="vault-progress-dot"></span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Upload Section -->
+            <section class="section upload-section" id="uploadSection">
+                <div class="section-header">
+                    <div class="section-title-group">
+                        <h2>SECURE TRANSFER</h2>
+                        <p class="section-subtitle">Upload a file</p>
+                        <p class="section-subtitle" style="margin-top: 4px;">Encrypt it, set the rules, share the link.</p>
+                    </div>
+                    <div class="section-icon">☁️</div>
+                </div>
+
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">☁️</div>
+                    <p class="upload-text">Drop your file here</p>
+                    <p class="upload-hint">or click to browse from your device</p>
+                    <p class="upload-hint" style="margin-top: 8px;">Maximum file size: 100 MB</p>
+                    <input type="file" id="fileInput" class="file-input" hidden>
+                </div>
+
+                <form id="uploadForm" class="upload-form">
+                    <div class="form-group">
+                        <label for="expirySelect">Expiry window</label>
+                        <select id="expirySelect" class="form-control" required>
+                            <option value="">Select duration...</option>
+                            <option value="FIVE_MINUTES">5 minutes</option>
+                            <option value="ONE_HOUR">1 hour</option>
+                            <option value="SIX_HOURS">6 hours</option>
+                            <option value="TWENTY_FOUR_HOURS">24 hours</option>
+                            <option value="SEVEN_DAYS">7 days</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="accessModeSelect">Access mode</label>
+                        <select id="accessModeSelect" class="form-control" required>
+                            <option value="">Select access mode...</option>
+                            <option value="DOWNLOAD" selected>Download & view</option>
+                            <option value="VIEW_ONLY">View only</option>
+                        </select>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-box-icon">🔒</span>
+                        <div class="info-box-text">
+                            <strong>Recipients can download</strong><br>
+                            Best for sending documents and assets.
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="uploadBtn">
+                        <span class="btn-icon">🔒</span>
+                        Secure & upload
+                        <span class="btn-icon">→</span>
+                    </button>
+                </form>
+
+                <div id="uploadStatus" class="status-message"></div>
+            </section>
+
+            <!-- Download/Access Section -->
+            <section class="section download-section">
+                <div class="section-header">
+                    <div class="section-title-group">
+                        <h2>ACCESS A SHARE</h2>
+                        <p class="section-subtitle">Retrieve a file</p>
+                        <p class="section-subtitle" style="margin-top: 4px;">Have a token? See what's inside.</p>
+                    </div>
+                    <div class="section-icon">🔗</div>
+                </div>
+
+                <form id="downloadForm" class="download-form">
+                    <div class="form-group">
+                        <label for="shareTokenInput">Share token</label>
+                        <div class="share-token-container">
+                            <input type="text" id="shareTokenInput" class="form-control" 
+                                   placeholder="A7X92KD1E5C4F9B2" maxlength="16">
+                            <button type="submit" class="btn btn-cyan">
+                                Check availability
+                                <span class="btn-icon">→</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="downloadStatus" class="status-message"></div>
+                <div id="fileInfoResult" class="file-info-card" style="display: none;"></div>
+            </section>
+        </main>
+
+        <!-- Upload Result Section -->
+        <section class="section result-section" id="resultSection" style="display: none;">
+            <div class="section-header">
+                <div class="section-title-group">
+                    <h2>✅ FILE UPLOADED SUCCESSFULLY</h2>
+                    <p class="section-subtitle">Your file is encrypted and ready to share</p>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <div class="result-grid">
+                    <div class="result-item">
+                        <label>📁 File Name</label>
+                        <p id="resultFileName"></p>
+                    </div>
+                    <div class="result-item">
+                        <label>💾 File Size</label>
+                        <p id="resultFileSize"></p>
+                    </div>
+                    <div class="result-item">
+                        <label>⏰ Upload Time</label>
+                        <p id="resultUploadTime"></p>
+                    </div>
+                    <div class="result-item">
+                        <label>⏳ Expires At</label>
+                        <p id="resultExpiryTime"></p>
+                    </div>
+                    <div class="result-item">
+                        <label>🔒 Access Mode</label>
+                        <p id="accessMode"></p>
+                    </div>
+                    <div class="result-item">
+                        <label>🎟️ Share Token</label>
+                        <p id="shareToken" class="mono-text"></p>
+                    </div>
+                </div>
+
+                <div class="result-item" style="margin-top: 20px;">
+                    <label>🔗 Sharing Link</label>
+                    <div class="share-link-container">
+                        <input type="text" id="shareLink" class="share-link-input" readonly>
+                        <button class="btn btn-copy" onclick="copyShareLink()">
+                            📋 Copy
+                        </button>
+                    </div>
+                </div>
+
+                <div class="result-actions">
+                    <button class="btn btn-secondary" onclick="resetForm()">
+                        ← Upload Another File
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section">
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-title">Built for privacy</div>
+                <div class="feature-description">
+                    Encryption behind it always saves your device.
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⏱️</div>
+                <div class="feature-title">Automatic expiry</div>
+                <div class="feature-description">
+                    Links disappear on your schedule.
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔗</div>
+                <div class="feature-title">Simple sharing</div>
+                <div class="feature-description">
+                    No accounts needed for recipients.
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-logo">
+                <div class="footer-logo-icon">☁️</div>
+                <span style="font-weight: 600; font-size: 16px;">CloudVault</span>
+            </div>
+            <p class="footer-text">© 2024 CloudVault · Secure file sharing, simplified</p>
+            <p class="footer-note">Files are encrypted with AES-256 and automatically deleted after expiry</p>
+            <div style="margin-top: 20px;">
+                <a href="#" class="footer-link" onclick="startTransfer()">Start a transfer</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

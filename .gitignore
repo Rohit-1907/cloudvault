@@ -1,0 +1,69 @@
+# Java
+*.class
+*.jar
+*.war
+*.nar
+*.zip
+*.tar.gz
+*.rar
+.classpath
+.project
+.settings/
+bin/
+!.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+
+# Spring Boot
+*.log
+.DS_Store
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# IDE
+.vscode/
+.eclipse/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.bak
+
+# Application specific
+cloudvault-storage/
+*.env
+.env.local
+.env.*.local
+
+# Configuration with sensitive data
+src/main/resources/application.properties
+
+# Database
+*.sql
+schema-*.sql
+
+# Build
+build/
+dist/
+
+# Node (if using frontend build tools)
+node_modules/
+npm-debug.log
+yarn-error.log
