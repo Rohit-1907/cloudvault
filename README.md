@@ -1,210 +1,197 @@
-# ☁️ CloudVault - Secure Self-Expiring Cloud File Storage
+# 🔒 CloudVault - Secure File Storage System
 
-A simple and secure file upload, storage, and sharing system with automatic expiry.
+CloudVault is a secure, temporary file storage and sharing system with end-to-end encryption, built with Spring Boot and Supabase.
 
-## 🚀 Features
+## ✨ Features
 
-- **File Upload**: Upload files with AES-256 encryption
-- **Auto Expiry**: Files automatically expire after user-selected duration
-- **Secure Sharing**: Generate temporary share links for public access
-- **Public Viewer**: Recipients can view files without authentication
-- **Multiple Access Modes**: 
-  - Download & View (recipients can download)
-  - View Only (recipients cannot download)
-- **Cloud Storage**: Files stored securely in Supabase
-- **No Authentication**: Simple public interface, no login required
+- **End-to-End Encryption**: All files are encrypted using AES-256 before storage
+- **Temporary File Sharing**: Files automatically expire after a set duration (5 min, 1 hour, 24 hours, 7 days)
+- **Two Access Modes**: 
+  - Download & View: Recipients can download and view files
+  - View Only: Recipients can only view files in browser (no download)
+- **Secure Share Links**: Each file gets a unique, secure share token
+- **Auto IP Detection**: Automatically detects your network IP for sharing
+- **Database Integration**: PostgreSQL database via Supabase
+- **Scheduled Cleanup**: Automatic deletion of expired files
 
-## 📋 Tech Stack
+## 🚀 Quick Start
 
-- **Backend**: Java + Spring Boot 3.1.5
-- **Database**: PostgreSQL (via Supabase)
-- **Storage**: Local filesystem (easily swap to cloud storage)
-- **Encryption**: AES-256-CBC
-- **Frontend**: HTML + CSS + JavaScript (Vanilla)
-
-## 🛠️ Prerequisites
+### Prerequisites
 
 - Java 17 or higher
 - Maven 3.6+
-- PostgreSQL (Supabase free tier works great)
+- Supabase account (free tier works)
 
-## ⚙️ Setup
+### Installation
 
-### 1. Database Setup (Supabase)
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/cloudvault.git
+   cd cloudvault
+   ```
 
-Create a Supabase PostgreSQL database. Run this SQL:
+2. **Set up configuration**
+   ```bash
+   cp src/main/resources/application.properties.example src/main/resources/application.properties
+   ```
 
-```sql
-CREATE TABLE IF NOT EXISTS cloud_files (
-    id BIGSERIAL PRIMARY KEY,
-    file_name VARCHAR(255) NOT NULL,
-    original_name VARCHAR(255),
-    share_token CHAR(16) UNIQUE NOT NULL,
-    file_size BIGINT,
-    upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expiry_date TIMESTAMP NOT NULL,
-    access_mode VARCHAR(50),
-    is_expired BOOLEAN DEFAULT false,
-    user_id BIGINT,
-    download_count INT DEFAULT 0
-);
+3. **Configure your settings** in `application.properties`:
+   - Add your Supabase database URL
+   - Add your Supabase API key
+   - Set a strong encryption master key
+   - (Optional) Set custom base URL or leave as localhost for auto-detection
 
-CREATE INDEX idx_share_token ON cloud_files(share_token);
-CREATE INDEX idx_expiry_date ON cloud_files(expiry_date);
-```
+4. **Run the application**
+   ```bash
+   mvn spring-boot:run
+   ```
 
-### 2. Configure Database
+5. **Access the application**
+   - Local: http://localhost:8080
+   - Network: http://YOUR_IP:8080
 
-Edit `src/main/resources/application.properties`:
+## ⚙️ Configuration
 
-```properties
-spring.datasource.url=jdbc:postgresql://YOUR_HOST:5432/YOUR_DB
-spring.datasource.username=YOUR_USER
-spring.datasource.password=YOUR_PASSWORD
-```
+### Database Setup (Supabase)
 
-### 3. Build & Run
+1. Create a free Supabase project at https://supabase.com
+2. Get your database connection string and API keys from Project Settings
+3. Update `application.properties` with your credentials
+
+The application will automatically create the required `cloud_files` table.
+
+### Environment Variables (Production)
+
+For production deployment, use environment variables instead of properties file:
 
 ```bash
-# Build
-mvn clean install
-
-# Run
-mvn spring-boot:run
+SPRING_DATASOURCE_URL=jdbc:postgresql://your-host:5432/postgres
+SPRING_DATASOURCE_PASSWORD=your-password
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-anon-key
+ENCRYPTION_MASTER_KEY=your-secure-key
+APP_BASE_URL=https://yourdomain.com
 ```
 
-App will be available at: **http://localhost:8080**
+## 🔐 Security Features
 
-## 📖 Usage
-
-### Upload File
-
-1. Go to main page
-2. Select a file
-3. Choose expiry time (5 min, 1 hour, 6 hours, 24 hours, 7 days)
-4. Choose access mode (Download & View or View Only)
-5. Click "Upload File"
-6. Copy the share link and share with others
-
-### Access Shared File
-
-1. Open the share link (or go to `/share.html?token=XXXXX`)
-2. View file info
-3. Click "Download File" to download (if allowed)
-4. Or just view in browser
-
-## 🔐 Security
-
-- **Encryption**: AES-256-CBC encryption of uploaded files
-- **Tokens**: 16-character random tokens for share links
-- **Expiry**: Automatic file deletion after expiry
-- **Storage**: Local storage (can be configured to use cloud storage)
+1. **File Encryption**: AES-256-CBC encryption for all stored files
+2. **Secure Tokens**: UUID-based share tokens (128-bit randomness)
+3. **Automatic Expiry**: Files auto-delete after expiration
+4. **Access Control**: View-only mode prevents unauthorized downloads
+5. **Database Encryption**: Sensitive metadata stored securely
 
 ## 📁 Project Structure
 
 ```
 cloudvault/
 ├── src/main/java/com/cloudvault/
-│   ├── controller/          # REST endpoints
-│   ├── service/             # Business logic
-│   ├── model/               # Database entities
-│   ├── repository/          # Data access layer
-│   ├── util/                # Utilities
-│   └── CloudVaultApplication.java
+│   ├── config/          # Configuration classes
+│   ├── controller/      # REST API endpoints
+│   ├── dto/            # Data transfer objects
+│   ├── model/          # Entity models
+│   ├── repository/     # Database repositories
+│   ├── service/        # Business logic
+│   └── util/           # Utility classes
 ├── src/main/resources/
-│   ├── static/              # HTML, CSS, JS
-│   └── application.properties
-├── pom.xml                  # Dependencies
-└── cloudvault-storage/      # Uploaded files directory
+│   ├── static/         # Frontend (HTML/CSS/JS)
+│   └── application.properties.example
+└── cloudvault-storage/ # Encrypted file storage (gitignored)
 ```
 
-## 🧪 Testing
+## 🌐 API Endpoints
 
-1. **Upload a file**
-   - Select file
-   - Choose "1 hour" expiry
-   - Choose "Download & View"
-   - Click Upload
+- `POST /api/files/upload` - Upload a file
+- `GET /api/files/access/{token}` - Get file information
+- `GET /api/files/download/{token}` - Download a file
+- `GET /api/files/view/{token}` - View file in browser
+- `GET /api/files/verify/{token}` - Verify encryption
+- `GET /file/{token}` - Public share page
 
-2. **Share the link**
-   - Copy the share link
-   - Open in new browser/incognito
-   - Should see file info and download button
+## 🛠️ Technology Stack
 
-3. **View Only Mode**
-   - Upload with "View Only" access
-   - Shared link should allow viewing only
-   - No download button should appear
+- **Backend**: Spring Boot 3.1.5, Java 21
+- **Database**: PostgreSQL (via Supabase)
+- **Security**: AES-256 encryption
+- **Storage**: Local encrypted file system
+- **Frontend**: Vanilla HTML/CSS/JavaScript
 
-## 📝 Configuration
+## 📝 Important Notes
 
-### File Upload Limits
+### Before Pushing to GitHub
 
-Edit `application.properties`:
+1. **Never commit `application.properties`** with real credentials
+2. The `.gitignore` already excludes sensitive files
+3. Use `application.properties.example` as a template
+4. Set real secrets via environment variables in production
 
-```properties
-spring.servlet.multipart.max-file-size=50MB
-spring.servlet.multipart.max-request-size=50MB
-```
+### IP Address & Networking
 
-### Expiry Check Interval
+- The app auto-detects your local IP address
+- Share links work on the same network (WiFi/hotspot)
+- For internet access, deploy to a cloud platform (Heroku, Railway, etc.)
+- If IP changes, restart the application to detect new IP
 
-```properties
-scheduler.file-expiry.interval=300000  # 5 minutes in milliseconds
-```
+### File Storage
 
-### Base URL (for share links)
-
-```properties
-app.base-url=http://localhost:8080
-```
-
-## 🐛 Troubleshooting
-
-### Files not deleting after expiry
-- Check that expiry scheduler is running
-- Check database connectivity
-- Check file permissions in storage directory
-
-### Upload fails
-- Check max file size limits
-- Verify database connection
-- Check storage directory permissions
-- Check disk space
-
-### Share links not working
-- Verify token is correct
-- Check if file has expired
-- Check database has cloud_files table
-
-## 📚 API Endpoints
-
-- `POST /api/files/upload` - Upload file
-- `GET /api/files/access/{token}` - Get file info
-- `GET /api/files/download/{token}` - Download file
-- `GET /api/files/view/{token}` - View file (for VIEW_ONLY mode)
+- Files are stored encrypted in `cloudvault-storage/uploads/`
+- This directory is gitignored (contains user data)
+- Expired files are automatically cleaned every 5 minutes
 
 ## 🚀 Deployment
 
-For production deployment:
+### Deploy to Railway/Render/Heroku
 
-1. Use HTTPS only
-2. Configure CORS properly
-3. Use managed cloud storage (S3, Google Cloud Storage, etc.)
-4. Enable database backups
-5. Set up monitoring and logging
-6. Use environment variables for secrets
+1. Set all environment variables in your platform
+2. Ensure PostgreSQL database is accessible
+3. Set `app.base-url` to your deployment URL
+4. Deploy from GitHub
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## ⚠️ Disclaimer
+
+CloudVault is designed for temporary file sharing. For production use:
+- Use strong encryption keys
+- Enable HTTPS
+- Implement user authentication
+- Add rate limiting
+- Regular security audits
+
+## 🐛 Troubleshooting
+
+### Share links not working
+- Check if application is running
+- Verify IP address is correct (check console logs)
+- Ensure recipient is on same network
+
+### Database connection failed
+- Verify Supabase credentials
+- Check database URL format
+- Ensure Supabase project is active
+
+### Files not expiring
+- Check scheduler configuration
+- Verify system clock is correct
+- Check application logs for errors
 
 ## 📞 Support
 
-For issues or questions, check the logs:
-
-```bash
-tail -f /path/to/cloudvault.log
-```
+For issues and questions:
+- Open an issue on GitHub
+- Check existing issues for solutions
 
 ---
 
-**Version**: 1.0.0  
-**License**: MIT  
-**Last Updated**: August 2026
+Made with ❤️ for secure file sharing
